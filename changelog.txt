@@ -1,0 +1,3 @@
+ver. 0.1
+-- Created a function for adding field of custom size
+-- Created a function for adding characters.
