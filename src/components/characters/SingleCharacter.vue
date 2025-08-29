@@ -1,8 +1,13 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
-import type { ISingleCharacter } from '@/types/types.ts'
+import { type ISingleCharacter, SingleCharactersRussianEnum } from '@/types/types.ts'
 
 export default defineComponent({
+  computed: {
+    SingleCharactersRussianEnum() {
+      return SingleCharactersRussianEnum
+    },
+  },
   components: {},
   props: {
     character: { type: Object as PropType<ISingleCharacter>, required: true },
@@ -15,21 +20,11 @@ export default defineComponent({
 
 <template>
   <div class="single-character">
-    <div>
-      <span class="single-character__block-title">Имя:</span>
-      <span>{{ character.name }}</span>
+    <div v-for="(attribute, key) in character" :key="key">
+      <span class="single-character__block-title"> {{ SingleCharactersRussianEnum[key] }}:</span>
+      <span>&nbsp;{{ attribute }}</span>
     </div>
-    <div>
-      <span class="single-character__block-title">Короткое имя:</span>
-      <span> {{ character.shortName }}</span>
-    </div>
-    <div>
-      <span class="single-character__block-title">Характеристики:</span>
-      <div>
-        <span>Сила:</span>
-        <span></span>
-      </div>
-    </div>
+    <slot></slot>
   </div>
 </template>
 

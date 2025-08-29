@@ -1,3 +1,11 @@
+ver 0.2
+-- Changed how field is works internally
+-- Created function for saving characters and field
+-- Created function for placing character on field
+-- Created function for moving character on the field
+-- Created function for deleting character
+-- Created function for deleting field
+
 ver. 0.1
--- Created a function for adding field of custom size
--- Created a function for adding characters.
+-- Created function for adding field of custom size
+-- Created function for adding characters.

@@ -3,9 +3,6 @@ import { defineComponent } from 'vue'
 
 export default defineComponent({
   components: {},
-  props: {
-    amountOfCells: { type: Number, required: true },
-  },
   setup() {
     return {}
   },

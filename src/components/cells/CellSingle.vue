@@ -1,30 +1,27 @@
 <script lang="ts">
-import { computed, defineComponent, ref } from 'vue'
+import { defineComponent, type PropType } from 'vue'
+import type { ICell, ISingleCharacter } from '@/types/types.ts'
 
 export default defineComponent({
   components: {},
   props: {
-    positionX: { type: Number, required: true },
-    positionY: { type: Number, required: true },
+    cell: { type: Object as PropType<ICell>, required: true },
+    characterToPlace: { type: Object as PropType<ISingleCharacter>, default: () => ({}) },
   },
-  setup(props) {
-    const contains = ref()
-    const position = computed(() => {
-      return {
-        x: props.positionX,
-        y: props.positionY,
-      }
-    })
+  emits: ['click'],
+  setup(props, { emit }) {
+    function handleClick() {
+      emit('click', props.cell.position)
+    }
     return {
-      position,
-      contains,
+      handleClick,
     }
   },
 })
 </script>
 
 <template>
-  <div class="cell-single">{{ contains }}</div>
+  <div @click="handleClick" class="cell-single">{{ cell.character?.shortName }}</div>
 </template>
 
 <style scoped>
