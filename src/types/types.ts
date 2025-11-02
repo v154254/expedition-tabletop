@@ -1,31 +1,12 @@
+import type Character from '@/types/character.ts'
+
 export interface ICoords {
   x: number
   y: number
 }
-
-export interface ISingleCharacter {
-  name: string
-  shortName: string
-  strength: number
-  endurance: number
-  perception: number
-  agility: number
-  luck: number
-  spirit: number
-  intelligence: number
-  speed: number
-  faith: number
-  beauty: number
-  charisma: number
-  movementPoints: number
-  allegiance: string
-  position: ICoords
-  currentTurn: string
-}
-
 export interface ICell {
   position: ICoords
-  character: ISingleCharacter | undefined
+  character: Character | undefined
 }
 
 export enum SingleCharactersRussianEnum {
@@ -42,8 +23,19 @@ export enum SingleCharactersRussianEnum {
   faith = 'Вера',
   beauty = 'Красота',
   charisma = 'Харизма',
-  movementPoints = 'СП',
+  currentHealth = 'Текущее здоровье',
+  maxHealth = 'Максимальное здоровье',
+  currentMovementPoints = 'Текущее кол-во СП',
+  maxMovementPoints = 'Максимальное кол-во СП',
+  initiative = 'Инициатива',
+  accuracy = 'Меткость',
+  evasion = 'Уклонение',
+  will = 'Воля',
+  closeCombatDamage = 'Урон (ББ)',
+  critChance = 'Критшанс',
+  skillPoints = 'ОУ',
+  attractiveness = 'Привлекательность',
+  actionPoints = 'ОД',
   allegiance = 'Сторона',
   position = 'Местоположение',
-  currentTurn = 'Ходит сейчас',
 }

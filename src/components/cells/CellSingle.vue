@@ -1,12 +1,11 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
-import type { ICell, ISingleCharacter } from '@/types/types.ts'
+import type { ICell } from '@/types/types.ts'
 
 export default defineComponent({
   components: {},
   props: {
     cell: { type: Object as PropType<ICell>, required: true },
-    characterToPlace: { type: Object as PropType<ISingleCharacter>, default: () => ({}) },
   },
   emits: ['click'],
   setup(props, { emit }) {

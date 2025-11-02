@@ -1,4 +1,11 @@
+ver.0.3
+02.11.2025
+-- massively reworked how characters work, moved from object to class syntax
+-- added turns system
+-- added initiative system
+
 ver 0.2
+30.08.2025
 -- Changed how field is works internally
 -- Created function for saving characters and field
 -- Created function for placing character on field
@@ -7,5 +14,6 @@ ver 0.2
 -- Created function for deleting field
 
 ver. 0.1
+17.08.2025
 -- Created function for adding field of custom size
 -- Created function for adding characters.

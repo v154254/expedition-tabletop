@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, onBeforeUnmount, onMounted, ref } from 'vue'
 import CreateFieldFeature from '@/components/buttons/CreateFieldFeature.vue'
-import type { ICell, ICoords, ISingleCharacter } from '@/types/types.ts'
+import type { ICell, ICoords, Character } from '@/types/types.ts'
 import CellRow from '@/components/cells/CellRow.vue'
 import CellSingle from '@/components/cells/CellSingle.vue'
 import SingleCharacter from '@/components/characters/SingleCharacter.vue'
@@ -19,23 +19,31 @@ export default defineComponent({
   components: { CharacterCreator, SingleCharacter, CellSingle, CellRow, CreateFieldFeature },
   setup() {
     const battleField = ref<ICell[][]>([])
-    const characters = ref<ISingleCharacter[]>([])
-    const selectedCharacter = ref<ISingleCharacter | null>(null)
+    const characters = ref<Character[]>([])
+    const initiativeOrder = ref<Character[]>([])
+
+    const selectedCharacter = ref<Character | null>(null)
+    const currentTurnCharacter = ref<Character | null>(null)
     const isCharacterCreatorOpened = ref<boolean>(false)
     const placeCharacterMode = ref<boolean>(false)
     const moveCharacterMode = ref<boolean>(false)
+
+    const currentInitiativeIndex = ref(0)
+    const isFighting = ref<boolean>(false)
+
+    const warning = ref<string>('')
 
     // character management
 
     function toggleCharacterCreator() {
       isCharacterCreatorOpened.value = !isCharacterCreatorOpened.value
     }
-    function addCharacter(character: ISingleCharacter) {
+    function addCharacter(character: Character) {
       characters.value.push(character)
       isCharacterCreatorOpened.value = false
     }
 
-    function toggleSelectCharacter(character: ISingleCharacter) {
+    function toggleSelectCharacter(character: Character) {
       if (selectedCharacter.value) {
         selectedCharacter.value = null
       } else {
@@ -43,51 +51,61 @@ export default defineComponent({
       }
     }
 
-    function toggleAddingCharacterToField(character: ISingleCharacter) {
+    function toggleAddingCharacterToField(character: Character) {
       toggleSelectCharacter(character)
       placeCharacterMode.value = !placeCharacterMode.value
     }
 
-    function toggleCharacterMovement(character: ISingleCharacter) {
+    function toggleCharacterMovement(character: Character) {
       toggleSelectCharacter(character)
       moveCharacterMode.value = !moveCharacterMode.value
     }
 
-    function deleteCharacter(character: ISingleCharacter) {
+    function deleteCharacter(character: Character) {
       for (const key in character) {
         delete character[key]
       }
       characters.value = characters.value.filter((character) => character.name)
+      initiativeOrder.value = characters.value.filter((character) => character.name)
     }
 
     // character actions
 
     function placeCharacter(cell: ICell) {
       if (selectedCharacter.value) {
+        const oldPosition = findOldPosition(selectedCharacter)
+        if (oldPosition) {
+          oldPosition.character = undefined
+        }
         cell.character = selectedCharacter.value
-        selectedCharacter.value.position.x = cell.position.x
-        selectedCharacter.value.position.y = cell.position.y
+        selectedCharacter.value.position = { x: cell.position.x, y: cell.position.y }
         selectedCharacter.value = null
       }
     }
 
     function moveCharacter(cell: ICell, distance: number) {
-      if (selectedCharacter.value!.movementPoints < distance) {
+      if (currentTurnCharacter.value.currentMovementPoints < distance) {
+        warning.value = 'Не хватает очков передвижения'
         return
       }
-      const oldPosition = battleField.value
-        .flat()
-        .find(
-          (cell) =>
-            cell.position.x === selectedCharacter.value!.position.x &&
-            cell.position.y === selectedCharacter.value!.position.y,
-        )
+      const oldPosition = findOldPosition(currentTurnCharacter)
       if (!oldPosition) {
         return
       }
       oldPosition.character = undefined
-      selectedCharacter.value!.position = cell.position
-      cell.character = selectedCharacter.value!
+      currentTurnCharacter.value.position = cell.position
+      currentTurnCharacter.value.currentMovementPoints -= distance
+      cell.character = currentTurnCharacter.value!
+    }
+
+    function endTurn() {
+      currentTurnCharacter.value.refreshCurrentMovementPoints()
+      if (currentInitiativeIndex.value + 1 === initiativeOrder.value.length) {
+        currentInitiativeIndex.value = 0
+      } else {
+        currentInitiativeIndex.value += 1
+      }
+      currentTurnCharacter.value = initiativeOrder.value[currentInitiativeIndex.value]
     }
 
     // game management
@@ -107,25 +125,78 @@ export default defineComponent({
 
     function deleteField() {
       battleField.value = [[]]
-      characters.value.map((character) => (character.position = { x: 0, y: 0 }))
+      characters.value.map((character: Character) => (character.position = { x: 0, y: 0 }))
     }
+
+    function toggleIsFighting() {
+      if (isFighting.value) {
+        endFighting()
+      } else {
+        startFighting()
+      }
+    }
+
+    function startFighting() {
+      isFighting.value = true
+      createInitiativeOrder()
+      currentTurnCharacter.value = initiativeOrder.value[currentInitiativeIndex.value]
+    }
+
+    function endFighting() {
+      isFighting.value = false
+    }
+
+    function createInitiativeOrder() {
+      const iterator = battleField.value
+        .flat()
+        .filter((item) => item.character)
+        .values()
+      const charactersOnBattleField = []
+      for (const value of iterator) {
+        charactersOnBattleField.push(value.character)
+      }
+      initiativeOrder.value = charactersOnBattleField.toSorted((a: Character, b: Character) => {
+        return a.name.localeCompare(b.name)
+      })
+      initiativeOrder.value.sort((a: Character, b: Character) => {
+        return b.initiative - a.initiative
+      })
+    }
+
+    //helpers
 
     function handleAction(position: ICoords) {
       const cell = battleField.value
         .flat()
-        .find((cell) => cell.position.x === position.x && cell.position.y === position.y)
+        .find((cell) => cell.position.x === position.x && cell.position.y === position.y) as ICell
       if (!selectedCharacter.value || !cell) {
         return
       }
       if (placeCharacterMode.value) {
         placeCharacter(cell)
+        placeCharacterMode.value = false
+        selectedCharacter.value = null
+        return
       }
       const distance =
         Math.abs(selectedCharacter.value.position.x - position.x) +
         Math.abs(selectedCharacter.value.position.y - position.y)
       if (moveCharacterMode.value) {
         moveCharacter(cell, distance)
+        moveCharacterMode.value = false
+        selectedCharacter.value = null
+        return
       }
+    }
+
+    function findOldPosition(character: Character) {
+      return battleField.value
+        .flat()
+        .find(
+          (cell) =>
+            cell.position.x === character.value!.position.x &&
+            cell.position.y === character.value!.position.y,
+        )
     }
 
     // miscellaneous
@@ -163,6 +234,14 @@ export default defineComponent({
       placeCharacterMode,
       moveCharacterMode,
       deleteField,
+      warning,
+      isFighting,
+      toggleIsFighting,
+      selectedCharacter,
+      initiativeOrder,
+      currentTurnCharacter,
+      endTurn,
+      currentInitiativeIndex,
     }
   },
 })
@@ -183,12 +262,9 @@ export default defineComponent({
         <div>
           <button @click="toggleAddingCharacterToField(character)">
             {{
-              placeCharacterMode ? 'Отменить установку персонажа' : 'Установить персонажа на поле'
-            }}
-          </button>
-          <button @click="toggleCharacterMovement(character)">
-            {{
-              moveCharacterMode ? 'Отменить передвижение персонажа' : 'Начать движение персонажа'
+              placeCharacterMode && character === selectedCharacter
+                ? 'Отменить установку персонажа'
+                : 'Установить персонажа на поле'
             }}
           </button>
           <button @click="deleteCharacter(character)">Удалить персонажа</button>
@@ -196,18 +272,41 @@ export default defineComponent({
       </SingleCharacter>
     </div>
     <button @click="save">Сохранить игру</button>
-    <CreateFieldFeature @create-field="createField" />
-    <button @click="deleteField">Удалить поле</button>
-    <div class="cell-field">
-      <CellRow v-for="(row, rowIndex) in battleField" :key="`widthX: ${rowIndex}`">
-        <CellSingle
-          v-for="(cell, cellIndex) in row"
-          :cell="cell"
-          :key="`${rowIndex}: ${cellIndex}`"
-          @click="handleAction"
+    <CreateFieldFeature v-show="battleField.length <= 1" @create-field="createField" />
+    <button v-show="battleField.length > 1" @click="toggleIsFighting">
+      {{ isFighting ? 'Завершить бой' : 'Начать бой' }}
+    </button>
+    <span class="warning">{{ warning }}</span>
+    <div class="battlefield-container">
+      <div class="initiative-order">
+        <SingleCharacter
+          v-for="character in initiativeOrder"
+          :key="character.name + 'orderInitiative'"
+          :character="character"
         />
-      </CellRow>
+      </div>
+      <div v-if="currentTurnCharacter">
+        <SingleCharacter :character="currentTurnCharacter">
+          <button @click="toggleCharacterMovement(currentTurnCharacter)">
+            {{
+              moveCharacterMode ? 'Отменить передвижение персонажа' : 'Начать движение персонажа'
+            }}
+          </button>
+          <button @click="endTurn">Закончить ход</button>
+        </SingleCharacter>
+      </div>
+      <div class="battlefield">
+        <CellRow v-for="(row, rowIndex) in battleField" :key="`widthX: ${rowIndex}`">
+          <CellSingle
+            v-for="(cell, cellIndex) in row"
+            :cell="cell"
+            :key="`${rowIndex}: ${cellIndex}`"
+            @click="handleAction"
+          />
+        </CellRow>
+      </div>
     </div>
+    <button v-show="battleField.length > 1" @click="deleteField">Удалить поле</button>
   </div>
 </template>
 
@@ -216,10 +315,19 @@ export default defineComponent({
 .index-page {
   @apply flex flex-col;
 }
-.cell-field {
-  @apply flex flex-col self-center;
+.battlefield-container {
+  @apply flex gap-20;
+}
+.battlefield {
+  @apply flex flex-col;
+}
+.initiative-order {
+  @apply flex flex-col;
 }
 .characters-list {
-  @apply grow;
+  @apply flex grow;
+}
+.warning {
+  @apply text-red-600;
 }
 </style>
