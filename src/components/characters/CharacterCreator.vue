@@ -12,9 +12,6 @@ export default defineComponent({
   components: {},
   emits: ['createCharacter'],
   setup(props, { emit }) {
-    const name = ref<string>('')
-    const shortName = ref<string>('')
-    const affiliation = ref<string>('')
     const character = ref<Character>(new Character('', '', ''))
 
     const modificators = ref<permanentEffects[]>([
@@ -70,9 +67,6 @@ export default defineComponent({
     }
 
     return {
-      name,
-      shortName,
-      affiliation,
       onSubmit,
       error,
       character,

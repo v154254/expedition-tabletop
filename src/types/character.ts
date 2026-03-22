@@ -94,10 +94,14 @@ export default class Character {
   readonly initialActionPoints: number
   readonly noModifiers: AllModifiers
 
-  constructor(name: string, shortName: string, allegiance: string) {
+  constructor(name: string, shortName: string, allegiance: string, permanentEffects: permanentEffects[] = [], currentHealth = 100, currentMovementPoints = 2, position: ICoords = { x: 0, y: 0 }  ) {
     this.name = name
     this.shortName = shortName
     this.allegiance = allegiance
+    this.permanentEffects = permanentEffects
+    this.currentHealth = currentHealth
+    this.currentMovementPoints = currentMovementPoints
+    this.position = position
 
     // Base attributes
     this._strength = 1
@@ -114,7 +118,6 @@ export default class Character {
     this._movementPoints = 2
 
     // Modifiers
-    this.permanentEffects = []
 
     // Constants
     this.initialHealth = 100
@@ -127,10 +130,6 @@ export default class Character {
     this.initialSkillPoints = 0
     this.initialAttractiveness = 0
     this.initialActionPoints = 0
-
-    this.currentHealth = this.initialHealth
-    this.currentMovementPoints = this._movementPoints
-    this.position = { x: 0, y: 0 }
 
     this.noModifiers = {
       strength: 0,

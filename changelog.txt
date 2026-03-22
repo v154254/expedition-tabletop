@@ -1,3 +1,7 @@
+ver 0.3.1
+22.03.2026
+--now saving and loading characters and battlefield state works properly
+
 ver.0.3
 02.11.2025
 -- massively reworked how characters work, moved from object to class syntax

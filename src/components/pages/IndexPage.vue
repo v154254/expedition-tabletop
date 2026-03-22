@@ -1,11 +1,13 @@
 <script lang="ts">
 import { defineComponent, onBeforeUnmount, onMounted, ref } from 'vue'
 import CreateFieldFeature from '@/components/buttons/CreateFieldFeature.vue'
-import type { ICell, ICoords, Character } from '@/types/types.ts'
+import type { ICell, ICoords } from '@/types/types.ts'
+import Character from '@/types/character'
 import CellRow from '@/components/cells/CellRow.vue'
 import CellSingle from '@/components/cells/CellSingle.vue'
 import SingleCharacter from '@/components/characters/SingleCharacter.vue'
 import CharacterCreator from '@/components/characters/CharacterCreator.vue'
+import cellRow from "@/components/cells/CellRow.vue";
 
 class Cell implements ICell {
   position = {
@@ -203,10 +205,35 @@ export default defineComponent({
 
     onMounted(() => {
       if (localStorage.characters) {
-        characters.value = JSON.parse(localStorage.characters)
+        characters.value = JSON.parse(localStorage.getItem('characters')).map(
+          (character: Character) => {
+            character = new Character(
+              character.name, character.shortName, character.allegiance,
+              character.permanentEffects, character.currentHealth, character.currentMovementPoints,
+              character.position
+            )
+            return character
+          }
+        )
       }
       if (localStorage.battleField) {
-        battleField.value = JSON.parse(localStorage.battleField)
+        battleField.value = JSON.parse(localStorage.getItem('battleField')).map(
+          (row) => {
+            row.map(
+              (cell) => {
+                if (cell.character) {
+                  cell.character = new Character(
+                    cell.character.name, cell.character.shortName, cell.character.allegiance,
+                    cell.character.permanentEffects, cell.character.currentHealth,
+                    cell.character.currentMovementPoints, cell.character.position
+                  )
+                }
+                return cell
+              }
+            )
+            return row
+          }
+        )
       }
     })
 
