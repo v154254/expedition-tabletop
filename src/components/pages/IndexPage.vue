@@ -126,6 +126,7 @@ export default defineComponent({
     }
 
     function deleteField() {
+      endFighting()
       battleField.value = [[]]
       characters.value.map((character: Character) => (character.position = { x: 0, y: 0 }))
     }
@@ -146,6 +147,8 @@ export default defineComponent({
 
     function endFighting() {
       isFighting.value = false
+      initiativeOrder.value = []
+      currentTurnCharacter.value = null
     }
 
     function createInitiativeOrder() {
