@@ -325,4 +325,11 @@ export default class Character {
   refreshCurrentMovementPoints() {
     this.currentMovementPoints = this.maxMovementPoints
   }
+  partiallyRestoreHealth(healthToRestore: number) {
+    if ((this.currentHealth + healthToRestore) > this.maxHealth) {
+      this.currentHealth = this.maxHealth
+    } else {
+      this.currentHealth = this.currentHealth + healthToRestore
+    }
+  }
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, type PropType } from 'vue'
+import {defineComponent, type PropType, ref} from 'vue'
 import { SingleCharactersRussianEnum } from '@/types/types.ts'
 import type Character from '@/types/character.ts'
 
@@ -13,8 +13,22 @@ export default defineComponent({
   props: {
     character: { type: Object as PropType<Character>, required: true },
   },
-  setup() {
-    return {}
+  setup(props) {
+    const showRestoreHealthInput = ref(false)
+    const healthToRestore = ref(0)
+    function toggleShowInput() {
+      showRestoreHealthInput.value = !showRestoreHealthInput.value
+    }
+    function restoreHealth() {
+      props.character.partiallyRestoreHealth(healthToRestore.value)
+      showRestoreHealthInput.value = false
+    }
+    return {
+      showRestoreHealthInput,
+      healthToRestore,
+      toggleShowInput,
+      restoreHealth
+    }
   },
 })
 </script>
@@ -50,6 +64,10 @@ export default defineComponent({
       <span class="single-character__block-title">Текущие СП:</span>
       <span>&nbsp;{{ character.currentMovementPoints }}</span>
     </div>
+    <button v-show="!showRestoreHealthInput" @click="character.refreshCurrentHealth">Полностью восстановить здоровье</button>
+    <button @click="toggleShowInput">{{ showRestoreHealthInput ? 'Отменить восстановление здоровья' : 'Частично восстановить здоровье'}}</button>
+    <input v-show="showRestoreHealthInput" type="number" v-model="healthToRestore">
+    <button v-show="showRestoreHealthInput" @click="restoreHealth">Восстановить здоровье</button>
     <slot></slot>
   </div>
 </template>
