@@ -147,6 +147,7 @@ export default defineComponent({
 
     function endFighting() {
       isFighting.value = false
+      initiativeOrder.value.map((character) => character.refreshCurrentMovementPoints())
       initiativeOrder.value = []
       currentTurnCharacter.value = null
     }
