@@ -222,11 +222,7 @@ export default defineComponent({
             row.map(
               (cell) => {
                 if (cell.character) {
-                  cell.character = new Character(
-                    cell.character.name, cell.character.shortName, cell.character.allegiance,
-                    cell.character.permanentEffects, cell.character.currentHealth,
-                    cell.character.currentMovementPoints, cell.character.position
-                  )
+                  cell.character = characters.value.find((character) => character.name === cell.character.name)
                 }
                 return cell
               }
