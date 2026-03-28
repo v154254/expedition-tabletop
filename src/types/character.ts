@@ -1,4 +1,5 @@
-import type { ICoords } from '@/types/types.ts'
+import type {IAttack, ICoords} from '@/types/types.ts'
+import {getRandomNumber} from "@/helpers/helpers.ts";
 
 export interface permanentEffects {
   name: string
@@ -332,4 +333,66 @@ export default class Character {
       this.currentHealth = this.currentHealth + healthToRestore
     }
   }
+
+  attack(): IAttack {
+    return {
+      damage: this.closeCombatDamage,
+      accuracy: this.accuracy,
+      critChance: this.critChance,
+      reach: 1,
+      attackerName: this.name
+    }
+  }
+
+  takeAttack(attack: IAttack): {log: string, remainingHealth: number} {
+    let { accuracyLog, isHit } = this.checkIfHit(attack.accuracy, attack.attackerName)
+    if (isHit) {
+      const {damageLog, remainingHealth} = this.calculateDamage(attack.damage, attack.attackerName)
+      const log = accuracyLog + '\n' + damageLog
+      return { log, remainingHealth}
+    } else {
+      return { log: accuracyLog, remainingHealth: this.currentHealth}
+    }
+  }
+
+  checkIfHit(accuracy: number, attackerName: string): {accuracyLog: string, isHit: boolean} {
+    let accuracyLog = `${attackerName} кидает кубик на точность, результат: `
+    const accuracyRoll = getRandomNumber(1, 20)
+    accuracyLog = accuracyLog + `${accuracyRoll}, `
+    const accuracyResult = accuracyRoll + accuracy
+    accuracyLog = accuracyLog + `базовое значение меткости: ${accuracy}, общее значение: ${accuracyRoll} + ${accuracy} = ${accuracyResult}`
+    accuracyLog = accuracyLog + '\n'
+    accuracyLog = accuracyLog + `${this.name} кидает кубик на уклонение, результат: `
+    const evasionRoll = getRandomNumber(1, 20)
+    accuracyLog = accuracyLog + `${evasionRoll}, `
+    const evasionResult = evasionRoll + this.evasion
+    accuracyLog = accuracyLog + `базовое значение уклонения: ${this.evasion}, общее значение: ${evasionRoll} + ${this.evasion} = ${evasionResult}`
+    accuracyLog = accuracyLog + `\n`
+    if (accuracyResult >= evasionResult) {
+      accuracyLog = accuracyLog + `Меткость (${accuracyResult}) >= уклонения (${evasionResult}). Попадание.`
+      return { accuracyLog, isHit: true }
+    } else {
+      accuracyLog = accuracyLog + `Уклонение (${evasionResult}) > меткости (${accuracyResult}). Промах.`
+      return { accuracyLog, isHit: false }
+    }
+  }
+
+  calculateDamage(attackerDamage: number, attackerName: string): {damageLog: string, remainingHealth: number} {
+    let damageLog = `${attackerName} кидает кубик на урон, результат: `
+    const damageRoll = getRandomNumber(1, 6)
+    damageLog = damageLog + `${damageRoll}, `
+    const damageResult = attackerDamage + damageRoll
+    damageLog = damageLog + '\n'
+    damageLog = damageLog + `${this.name} кидает кубик на сопротивление к урону, результат: `
+    const resistanceRoll = getRandomNumber(1, 6)
+    damageLog = damageLog + `${resistanceRoll}`
+    const remainingHealth = this.currentHealth - (attackerDamage + damageRoll) - resistanceRoll
+    damageLog = damageLog + '\n'
+    damageLog = damageLog + `${this.currentHealth} - (${attackerDamage} + ${damageRoll}) - ${resistanceRoll} = ${remainingHealth}`
+    return {
+      damageLog,
+      remainingHealth
+    }
+  }
 }
+

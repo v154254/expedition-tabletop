@@ -1,3 +1,15 @@
+ver 0.4
+28.03.2026
+--added buttons for health restoration
+--added ability to attack other characters
+--added combat log
+
+ver 0.3.2
+27.03.2026
+--now character in sheet and character on field is the same entity (after loading game)
+--now ending a fight does not break the game and happens automatically after destroying field
+--now ending a fight refreshes all movement points for all participants in that fight
+
 ver 0.3.1
 22.03.2026
 --now saving and loading characters and battlefield state works properly

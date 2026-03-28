@@ -29,11 +29,13 @@ export default defineComponent({
     const isCharacterCreatorOpened = ref<boolean>(false)
     const placeCharacterMode = ref<boolean>(false)
     const moveCharacterMode = ref<boolean>(false)
+    const attackCharacterMode = ref<boolean>(false)
 
     const currentInitiativeIndex = ref(0)
     const isFighting = ref<boolean>(false)
 
     const warning = ref<string>('')
+    const combatLog = ref<string>('')
 
     // character management
 
@@ -63,6 +65,11 @@ export default defineComponent({
       moveCharacterMode.value = !moveCharacterMode.value
     }
 
+    function toggleAttackMode(character: Character) {
+      toggleSelectCharacter(character)
+      attackCharacterMode.value = !attackCharacterMode.value
+    }
+
     function deleteCharacter(character: Character) {
       for (const key in character) {
         delete character[key]
@@ -90,14 +97,38 @@ export default defineComponent({
         warning.value = 'Не хватает очков передвижения'
         return
       }
+      if (cell.character) {
+        warning.value = 'На выбранной клетке уже находится персонаж'
+        return
+      }
       const oldPosition = findOldPosition(currentTurnCharacter)
       if (!oldPosition) {
         return
       }
+      combatLog.value = combatLog.value + '\n' + `${currentTurnCharacter.value.name} передвигается из клетки x:${oldPosition.position.x} y:${oldPosition.position.y} на клетку x:${cell.position.x} y:${cell.position.y}`
       oldPosition.character = undefined
       currentTurnCharacter.value.position = cell.position
       currentTurnCharacter.value.currentMovementPoints -= distance
       cell.character = currentTurnCharacter.value!
+    }
+
+    function attackCharacter(cell: ICell, distance: number) {
+      const attackValues = currentTurnCharacter.value.attack()
+      if (attackValues.reach < distance) {
+        warning.value = 'Не хватает дальности атаки'
+        return
+      }
+      if (!cell.character) {
+        warning.value = 'На выбранной клетке нет персонажа которого можно было бы атаковать'
+        return
+      }
+      if (cell.character.name === currentTurnCharacter.value.name) {
+        warning.value = 'Убей врагов чем себя'
+        return
+      }
+      const {log, remainingHealth} = cell.character.takeAttack(attackValues)
+      cell.character.currentHealth = remainingHealth
+      combatLog.value = combatLog.value + '\n' + log
     }
 
     function endTurn() {
@@ -193,6 +224,12 @@ export default defineComponent({
         selectedCharacter.value = null
         return
       }
+      if (attackCharacterMode.value) {
+        attackCharacter(cell, distance)
+        attackCharacterMode.value = false
+        selectedCharacter.value = null
+        return;
+      }
     }
 
     function findOldPosition(character: Character) {
@@ -246,6 +283,10 @@ export default defineComponent({
       localStorage.setItem('battleField', JSON.stringify(battleField.value))
     }
 
+    function clearCombatLog() {
+      combatLog.value = ''
+    }
+
     return {
       createField,
       characters,
@@ -269,6 +310,10 @@ export default defineComponent({
       currentTurnCharacter,
       endTurn,
       currentInitiativeIndex,
+      attackCharacterMode,
+      toggleAttackMode,
+      combatLog,
+      clearCombatLog
     }
   },
 })
@@ -310,13 +355,19 @@ export default defineComponent({
           v-for="character in initiativeOrder"
           :key="character.name + 'orderInitiative'"
           :character="character"
+          where-is-character="field"
         />
       </div>
       <div v-if="currentTurnCharacter">
-        <SingleCharacter :character="currentTurnCharacter">
+        <SingleCharacter :character="currentTurnCharacter" where-is-character="field">
           <button @click="toggleCharacterMovement(currentTurnCharacter)">
             {{
-              moveCharacterMode ? 'Отменить передвижение персонажа' : 'Начать движение персонажа'
+              moveCharacterMode ? 'Отменить движение' : 'Начать движение'
+            }}
+          </button>
+          <button @click="toggleAttackMode(currentTurnCharacter)">
+            {{
+              attackCharacterMode ? 'Отменить атаку' : 'Атаковать'
             }}
           </button>
           <button @click="endTurn">Закончить ход</button>
@@ -331,6 +382,10 @@ export default defineComponent({
             @click="handleAction"
           />
         </CellRow>
+      </div>
+      <div>
+      <p class="combat-log">{{combatLog}}</p>
+        <button @click="clearCombatLog" v-show="combatLog.length">Очистить лог</button>
       </div>
     </div>
     <button v-show="battleField.length > 1" @click="deleteField">Удалить поле</button>
@@ -356,5 +411,8 @@ export default defineComponent({
 }
 .warning {
   @apply text-red-600;
+}
+.combat-log {
+  @apply whitespace-pre-line;
 }
 </style>

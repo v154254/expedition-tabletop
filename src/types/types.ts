@@ -39,3 +39,11 @@ export enum SingleCharactersRussianEnum {
   allegiance = 'Сторона',
   position = 'Местоположение',
 }
+
+export interface IAttack {
+  damage: number
+  accuracy: number
+  critChance: number
+  reach: number
+  attackerName: string
+}

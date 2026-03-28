@@ -12,6 +12,7 @@ export default defineComponent({
   components: {},
   props: {
     character: { type: Object as PropType<Character>, required: true },
+    whereIsCharacter: { type: String, default: 'sheet'}
   },
   setup(props) {
     const showRestoreHealthInput = ref(false)
@@ -64,10 +65,12 @@ export default defineComponent({
       <span class="single-character__block-title">Текущие СП:</span>
       <span>&nbsp;{{ character.currentMovementPoints }}</span>
     </div>
+    <div v-show="whereIsCharacter === 'sheet'">
     <button v-show="!showRestoreHealthInput" @click="character.refreshCurrentHealth">Полностью восстановить здоровье</button>
     <button @click="toggleShowInput">{{ showRestoreHealthInput ? 'Отменить восстановление здоровья' : 'Частично восстановить здоровье'}}</button>
     <input v-show="showRestoreHealthInput" type="number" v-model="healthToRestore">
     <button v-show="showRestoreHealthInput" @click="restoreHealth">Восстановить здоровье</button>
+    </div>
     <slot></slot>
   </div>
 </template>
