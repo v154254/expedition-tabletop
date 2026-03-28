@@ -1,3 +1,6 @@
+ver 0.4.1
+--system is changed to another set of rules
+
 ver 0.4
 28.03.2026
 --added buttons for health restoration

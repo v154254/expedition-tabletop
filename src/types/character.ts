@@ -7,73 +7,61 @@ export interface permanentEffects {
 }
 
 interface SomeModifiers {
-  strength?: number
-  endurance?: number
-  perception?: number
-  agility?: number
-  luck?: number
-  spirit?: number
-  intelligence?: number
-  speed?: number
-  faith?: number
-  beauty?: number
-  charisma?: number
-  maxHealth?: number
-  maxMovementPoints?: number
-  initiative?: number
-  accuracy?: number
-  evasion?: number
-  will?: number
-  closeCombatDamage?: number
-  critChance?: number
-  skillPoints?: number
-  attractiveness?: number
-  actionPoints?: number
+  mind?: number;
+  body?: number;
+  insight?: number;
+  fortitude?: number;
+  liveliness?: number;
+  aesthetics?: number;
+  learnability?: number;
+  spirit?: number;
+  endurance?: number;
+  maxHealth?: number;
+  accuracy?: number;
+  evasion?: number;
+  defence?: number;
+  defenceFromElements?: number;
+  maxMovementPoints?: number;
+  actionPoints?: number;
+  charisma?: number;
+  critChance?: number;
 }
 
 interface AllModifiers {
-  strength: number
-  endurance: number
-  perception: number
-  agility: number
-  luck: number
-  spirit: number
-  intelligence: number
-  speed: number
-  faith: number
-  beauty: number
-  charisma: number
-  maxHealth: number
-  maxMovementPoints: number
-  initiative: number
-  accuracy: number
-  evasion: number
-  will: number
-  closeCombatDamage: number
-  critChance: number
-  skillPoints: number
-  attractiveness: number
-  actionPoints: number
+  mind: number;
+  body: number;
+  insight: number;
+  fortitude: number;
+  liveliness: number;
+  aesthetics: number;
+  learnability: number;
+  spirit: number;
+  endurance: number;
+  maxHealth: number;
+  accuracy: number;
+  evasion: number;
+  defence: number;
+  defenceFromElements: number;
+  maxMovementPoints: number;
+  actionPoints: number;
+  charisma: number;
+  critChance: number;
 }
 
 export default class Character {
   // Base attributes
-  private _strength: number
-  private _endurance: number
-  private _perception: number
-  private _agility: number
-  private _luck: number
-  private _spirit: number
-  private _intelligence: number
-  private _speed: number
-  private _faith: number
-  private _beauty: number
-  private _charisma: number
-  private _movementPoints: number
+  private _baseMind: number
+  private _baseBody: number
+  private _baseInsight: number
+  private _baseFortitude: number
+  private _baseLiveliness: number
+  private _baseAesthetics: number
 
   public currentHealth: number
   public currentMovementPoints: number
   public position: ICoords
+  public numberOfAttacks: number
+  public remainingAttacks: number
 
   readonly name: string
   readonly shortName: string
@@ -81,19 +69,8 @@ export default class Character {
 
   // Modifiers
   permanentEffects: permanentEffects[]
-
-  // Constants
-  readonly initialHealth: number
-  readonly initialCloseCombatDamage: number
-  readonly initialInitiative: number
-  readonly initialAccuracy: number
-  readonly initialEvasion: number
-  readonly initialCritChance: number
-  readonly initialWill: number
-  readonly initialSkillPoints: number
-  readonly initialAttractiveness: number
-  readonly initialActionPoints: number
   readonly noModifiers: AllModifiers
+
 
   constructor(name: string, shortName: string, allegiance: string, permanentEffects: permanentEffects[] = [], currentHealth = 100, currentMovementPoints = 2, position: ICoords = { x: 0, y: 0 }  ) {
     this.name = name
@@ -103,64 +80,64 @@ export default class Character {
     this.currentHealth = currentHealth
     this.currentMovementPoints = currentMovementPoints
     this.position = position
+    this.numberOfAttacks = 1
+    this.remainingAttacks = 1
 
     // Base attributes
-    this._strength = 1
-    this._endurance = 1
-    this._perception = 1
-    this._agility = 1
-    this._luck = 1
-    this._spirit = 1
-    this._intelligence = 1
-    this._speed = 1
-    this._faith = 1
-    this._beauty = 1
-    this._charisma = 1
-    this._movementPoints = 2
-
-    // Modifiers
-
-    // Constants
-    this.initialHealth = 100
-    this.initialCloseCombatDamage = 75
-    this.initialInitiative = 10
-    this.initialAccuracy = 50
-    this.initialEvasion = 0
-    this.initialCritChance = 0
-    this.initialWill = 5
-    this.initialSkillPoints = 0
-    this.initialAttractiveness = 0
-    this.initialActionPoints = 0
+    this._baseMind = 10
+    this._baseBody = 10
+    this._baseInsight = 10
+    this._baseFortitude = 10
+    this._baseLiveliness = 10
+    this._baseAesthetics = 10
 
     this.noModifiers = {
-      strength: 0,
-      endurance: 0,
-      perception: 0,
-      agility: 0,
-      luck: 0,
+      mind: 0,
+      body: 0,
+      insight: 0,
+      fortitude: 0,
+      liveliness: 0,
+      aesthetics: 0,
+      learnability: 0,
       spirit: 0,
-      intelligence: 0,
-      speed: 0,
-      faith: 0,
-      beauty: 0,
-      charisma: 0,
+      endurance: 0,
       maxHealth: 0,
-      maxMovementPoints: 0,
-      initiative: 0,
       accuracy: 0,
       evasion: 0,
-      will: 0,
-      closeCombatDamage: 0,
-      critChance: 0,
-      skillPoints: 0,
-      attractiveness: 0,
+      defence: 0,
+      defenceFromElements: 0,
+      maxMovementPoints: 0,
       actionPoints: 0,
+      charisma: 0,
+      critChance: 0
     }
   }
 
-  // Getters for modifiers
+    get attributes(): AllModifiers {
+    return {
+      mind: this.mind,
+      body: this.body,
+      insight: this.insight,
+      fortitude: this.fortitude,
+      liveliness: this.liveliness,
+      aesthetics: this.aesthetics,
+      learnability: this.learnability,
+      spirit: this.spirit,
+      endurance: this.endurance,
+      maxHealth: this.maxHealth,
+      accuracy: this.accuracy,
+      evasion: this.evasion,
+      defence: this.defence,
+      defenceFromElements: this.defenceFromElements,
+      maxMovementPoints: this.maxMovementPoints,
+      actionPoints: this.actionPoints,
+      charisma: this.charisma,
+      critChance: this.critChance,
+      remainingAttacks: this.remainingAttacks
+    }
+  }
 
-  get modifiers(): AllModifiers {
+    get modifiers(): AllModifiers {
     if (this.permanentEffects) {
       // need it to prevent mutation of noModifiers
       const initialAcc = { ...this.noModifiers }
@@ -180,135 +157,78 @@ export default class Character {
     return this.noModifiers
   }
 
-  // Getters for base attributes with modifiers
-  get strength(): number {
-    return this._strength + this.modifiers.strength
+  get mind(): number {
+    return this._baseMind + this.modifiers.mind;
   }
 
-  get endurance(): number {
-    return this._endurance + this.modifiers.endurance
+  get body(): number {
+    return this._baseBody + this.modifiers.body;
   }
 
-  get perception(): number {
-    return this._perception + this.modifiers.perception
+  get insight(): number {
+    return this._baseInsight + this.modifiers.insight;
   }
 
-  get agility(): number {
-    return this._agility + this.modifiers.agility
+  get fortitude(): number {
+    return this._baseFortitude + this.modifiers.fortitude;
   }
 
-  get luck(): number {
-    return this._luck + this.modifiers.luck
+  get liveliness(): number {
+    return this._baseLiveliness + this.modifiers.liveliness;
   }
 
-  get spirit(): number {
-    return this._spirit + this.modifiers.spirit
+  get aesthetics(): number {
+    return this._baseAesthetics + this.modifiers.aesthetics;
   }
 
-  get intelligence(): number {
-    return this._intelligence + this.modifiers.intelligence
+  get learnability() {
+    return Math.floor(this.mind * 0.3) + this.modifiers.learnability
+  }
+  get spirit() {
+    return (this.mind * 10) + this.modifiers.spirit
   }
 
-  get speed(): number {
-    return this._speed + this.modifiers.speed
+  get endurance() {
+    return this.body + this.modifiers.endurance
   }
 
-  get faith(): number {
-    return this._faith + this.modifiers.faith
+  get maxHealth() {
+    return (this.body * 10) + this.modifiers.maxHealth
   }
 
-  get beauty(): number {
-    return this._beauty + this.modifiers.beauty
+  get accuracy() {
+    return (this.insight * 2) + this.modifiers.accuracy
   }
 
-  get charisma(): number {
-    return this._charisma + this.modifiers.charisma
+  get evasion() {
+    return (this.insight * 2) + this.modifiers.evasion
   }
 
-  get maxMovementPoints(): number {
-    return this._movementPoints + this.modifiers.maxMovementPoints
+  get defence() {
+    return this.fortitude + this.modifiers.fortitude
   }
 
-  // Derived properties
-  get maxHealth(): number {
-    if (this.endurance < 6) {
-      return this.initialHealth + 25 * (this.endurance - 1)
-    }
-    const currentHealth = this.initialHealth + 100
-    return Math.round(
-      this.initialHealth +
-        100 +
-        0.2 * (this.endurance - 5) * currentHealth +
-        this.modifiers.maxHealth,
-    )
+  get defenceFromElements() {
+    return this.fortitude + this.modifiers.fortitude
   }
 
-  get closeCombatDamage(): number {
-    return (
-      this.initialCloseCombatDamage + 25 * (this.strength - 1) + this.modifiers.closeCombatDamage
-    )
+  get maxMovementPoints() {
+    return Math.floor(this.liveliness * 0.3) + this.modifiers.maxMovementPoints
   }
 
-  get initiative(): number {
-    return this.initialInitiative + 2 * (this.speed - 1) + this.modifiers.initiative
+  get actionPoints() {
+    return Math.floor(this.liveliness * 0.3) + this.modifiers.actionPoints
   }
 
-  get accuracy(): number {
-    return this.initialAccuracy + 5 * (this.perception - 1) + this.modifiers.accuracy
+  get charisma() {
+    return this.aesthetics + this.modifiers.charisma
   }
 
-  get evasion(): number {
-    return this.initialEvasion + 5 * (this.agility - 1) + this.modifiers.evasion
+  get critChance() {
+    return this.aesthetics + this.modifiers.critChance
   }
 
-  get critChance(): number {
-    return this.initialCritChance + 5 * (this.luck - 1) + this.modifiers.critChance
-  }
-
-  get will(): number {
-    return this.initialWill + (this.spirit - 1) + this.modifiers.will
-  }
-
-  get skillPoints(): number {
-    return this.initialSkillPoints + this.intelligence + this.modifiers.skillPoints
-  }
-
-  get attractiveness(): number {
-    return this.initialAttractiveness + 10 * (this.beauty - 1) + this.modifiers.attractiveness
-  }
-
-  get actionPoints(): number {
-    return this.initialActionPoints + this.charisma + this.modifiers.actionPoints
-  }
-
-  get attributes(): AllModifiers {
-    return {
-      strength: this.strength,
-      endurance: this.endurance,
-      perception: this.perception,
-      agility: this.agility,
-      luck: this.luck,
-      spirit: this.spirit,
-      intelligence: this.intelligence,
-      speed: this.speed,
-      faith: this.faith,
-      beauty: this.beauty,
-      charisma: this.charisma,
-      maxMovementPoints: this.maxMovementPoints,
-      maxHealth: this.maxHealth,
-      closeCombatDamage: this.closeCombatDamage,
-      initiative: this.initiative,
-      accuracy: this.accuracy,
-      evasion: this.evasion,
-      critChance: this.critChance,
-      will: this.will,
-      skillPoints: this.skillPoints,
-      attractiveness: this.attractiveness,
-      actionPoints: this.actionPoints,
-    }
-  }
-
-  addPermanentModifier(modifier: permanentEffects) {
+    addPermanentModifier(modifier: permanentEffects) {
     this.permanentEffects.push(modifier)
   }
 
@@ -326,6 +246,9 @@ export default class Character {
   refreshCurrentMovementPoints() {
     this.currentMovementPoints = this.maxMovementPoints
   }
+  refreshAttacks() {
+    this.remainingAttacks = this.numberOfAttacks
+  }
   partiallyRestoreHealth(healthToRestore: number) {
     if ((this.currentHealth + healthToRestore) > this.maxHealth) {
       this.currentHealth = this.maxHealth
@@ -333,6 +256,7 @@ export default class Character {
       this.currentHealth = this.currentHealth + healthToRestore
     }
   }
+
 
   attack(): IAttack {
     return {
@@ -394,5 +318,5 @@ export default class Character {
       remainingHealth
     }
   }
-}
 
+}

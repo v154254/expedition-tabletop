@@ -30,6 +30,7 @@ export default defineComponent({
     const placeCharacterMode = ref<boolean>(false)
     const moveCharacterMode = ref<boolean>(false)
     const attackCharacterMode = ref<boolean>(false)
+    const selectCharacterToActMode = ref<boolean>(false)
 
     const currentInitiativeIndex = ref(0)
     const isFighting = ref<boolean>(false)
@@ -68,6 +69,10 @@ export default defineComponent({
     function toggleAttackMode(character: Character) {
       toggleSelectCharacter(character)
       attackCharacterMode.value = !attackCharacterMode.value
+    }
+
+    function toggleSelectCharacterToActMode() {
+      selectCharacterToActMode.value = !selectCharacterToActMode.value
     }
 
     function deleteCharacter(character: Character) {
@@ -114,6 +119,10 @@ export default defineComponent({
 
     function attackCharacter(cell: ICell, distance: number) {
       const attackValues = currentTurnCharacter.value.attack()
+      if (currentTurnCharacter.value.remainingAttacks < 1) {
+        warning.value = 'Не осталось атак'
+        return
+      }
       if (attackValues.reach < distance) {
         warning.value = 'Не хватает дальности атаки'
         return
@@ -128,17 +137,23 @@ export default defineComponent({
       }
       const {log, remainingHealth} = cell.character.takeAttack(attackValues)
       cell.character.currentHealth = remainingHealth
+      currentTurnCharacter.value.remainingAttacks -= 1
       combatLog.value = combatLog.value + '\n' + log
     }
 
     function endTurn() {
+      initiativeOrder.value.map(
+        (character) => {
+          character.refreshCurrentMovementPoints()
+          character.refreshAttacks()
+        }
+      )
+    }
+
+    function additionalTurn() {
       currentTurnCharacter.value.refreshCurrentMovementPoints()
-      if (currentInitiativeIndex.value + 1 === initiativeOrder.value.length) {
-        currentInitiativeIndex.value = 0
-      } else {
-        currentInitiativeIndex.value += 1
-      }
-      currentTurnCharacter.value = initiativeOrder.value[currentInitiativeIndex.value]
+      currentTurnCharacter.value.refreshAttacks()
+      return
     }
 
     // game management
@@ -206,7 +221,7 @@ export default defineComponent({
       const cell = battleField.value
         .flat()
         .find((cell) => cell.position.x === position.x && cell.position.y === position.y) as ICell
-      if (!selectedCharacter.value || !cell) {
+      if (!cell) {
         return
       }
       if (placeCharacterMode.value) {
@@ -214,6 +229,11 @@ export default defineComponent({
         placeCharacterMode.value = false
         selectedCharacter.value = null
         return
+      }
+      if (selectCharacterToActMode.value) {
+        currentTurnCharacter.value = cell.character
+        selectCharacterToActMode.value = false
+        return;
       }
       const distance =
         Math.abs(selectedCharacter.value.position.x - position.x) +
@@ -308,12 +328,15 @@ export default defineComponent({
       selectedCharacter,
       initiativeOrder,
       currentTurnCharacter,
-      endTurn,
       currentInitiativeIndex,
       attackCharacterMode,
       toggleAttackMode,
       combatLog,
-      clearCombatLog
+      clearCombatLog,
+      toggleSelectCharacterToActMode,
+      selectCharacterToActMode,
+      additionalTurn,
+      endTurn
     }
   },
 })
@@ -348,6 +371,12 @@ export default defineComponent({
     <button v-show="battleField.length > 1" @click="toggleIsFighting">
       {{ isFighting ? 'Завершить бой' : 'Начать бой' }}
     </button>
+    <button v-show="isFighting" @click="toggleSelectCharacterToActMode">
+      {{ selectCharacterToActMode ? 'Отменить выбор персонажа' : 'Выбрать персонажа который будет ходить' }}
+    </button>
+    <button v-show="isFighting" @click="endTurn">
+      Завершить ход
+    </button>
     <span class="warning">{{ warning }}</span>
     <div class="battlefield-container">
       <div class="initiative-order">
@@ -370,7 +399,7 @@ export default defineComponent({
               attackCharacterMode ? 'Отменить атаку' : 'Атаковать'
             }}
           </button>
-          <button @click="endTurn">Закончить ход</button>
+          <button @click="additionalTurn">Сходить повторно</button>
         </SingleCharacter>
       </div>
       <div class="battlefield">
